@@ -1,0 +1,11 @@
+dependencies:
+- alias: ""
+  condition: ""
+  enabled: false
+  import-values: null
+  name: zookeeper
+  repository: https://kow3ns.github.io/kubernetes-zookeeper/helm/repo
+  tags: null
+  version: "1.0"
+digest: sha256:b58521d70476f9fe4de3469229a99bf846902eea2b99e52b279a25170d80eab5
+generated: 2017-06-30T15:22:41.238014352-07:00

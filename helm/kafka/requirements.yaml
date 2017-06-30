@@ -1,0 +1,4 @@
+dependencies:
+- name: zookeeper
+  version:  "1.0"
+  repository: https://kow3ns.github.io/kubernetes-zookeeper/helm/repo

@@ -1,0 +1,208 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ printf "kf-hs-%s" .Release.Name | trunc 24 }}"
+  labels:
+    heritage: {{.Release.Service | quote }}
+    release: {{.Release.Name | quote }}
+    chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+    component: "kf-{{.Release.Name}}"
+spec:
+  ports:
+  - port: {{.Values.ServerPort}}
+    name: server
+  clusterIP: None
+  selector:
+    component: "kf-{{.Release.Name}}"
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: "{{ printf "pd-kf-%s" .Release.Name | trunc 24 }}"
+  annotations:
+    helm.sh/created: {{.Release.Time.Seconds | quote }}
+  labels:
+    heritage: {{.Release.Service | quote }}
+    release: {{.Release.Name | quote }}
+    chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+    component: "{{ printf "kf-%s" .Release.Name  | trunc 24 }}"
+spec:
+  selector:
+    matchLabels:
+      component: "{{ printf "kf-%s" .Release.Name  | trunc 24 }}"
+  maxUnavailable: {{.Values.MaxUnavailable}}
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: "{{ printf "kf-%s" .Release.Name  | trunc 24 }}"
+  annotations:
+   helm.sh/created: {{.Release.Time.Seconds | quote }}
+  labels:
+   heritage: {{.Release.Service | quote }}
+   release: {{.Release.Name | quote }}
+   chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+   component: "{{.Release.Name}}"
+spec:
+  serviceName: "{{ printf "kf-hs-%s" .Release.Name | trunc 24 }}"
+  replicas: 3
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: {{.Values.UpdateStrategy}}
+  template:
+    metadata:
+      labels:
+        component: "{{ printf "kf-%s" .Release.Name  | trunc 24 }}"
+    spec:
+      {{- if eq .Values.AntiAffinity "hard"}}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "component"
+                    operator: In
+                    values:
+                    - "{{ printf "kf-%s" .Release.Name  | trunc 24 }}"
+              topologyKey: "kubernetes.io/hostname"
+      {{- else if eq .Values.AntiAffinity "soft"}}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+             - weight: 1
+               podAffinityTerm:
+                 labelSelector:
+                    matchExpressions:
+                      - key: "component"
+                        operator: In
+                        values:
+                         - "{{ printf "kf-%s" .Release.Name  | trunc 24 }}"
+                 topologyKey: "kubernetes.io/hostname"
+      {{- end}}
+      terminationGracePeriodSeconds: {{.Values.TerminationGracePeriodSeconds}}
+      containers:
+      - name: k8skafka
+        imagePullPolicy: {{.Values.ImagePullPolicy}}
+        image: {{.Values.Image}}
+        resources:
+          requests:
+            memory: {{.Values.Memory}}
+            cpu: {{.Values.Cpu}}
+        ports:
+        - containerPort: {{.Values.ServerPort}}
+          name: server
+        command:
+        - sh
+        - -c
+        - "exec kafka-server-start.sh /opt/kafka/config/server.properties --override broker.id=${HOSTNAME##*-} \
+          --override zookeeper.connect={{ printf "zk-cs-%s" .Release.Name | trunc 24 }}.default.svc.cluster.local:{{.Values.zookeeper.ClientPort}} \
+          --override log.dir=/var/lib/kafka \
+          --override listeners=PLAINTEXT://:{{.Values.ServerPort}} \
+          --override auto.create.topics.enable={{.Values.AutoCreateTopicsEnable}} \
+          --override auto.leader.rebalance.enable={{.Values.AutoLeaderRebalanceEnable}} \
+          --override background.threads={{.Values.BackgroundThreads}} \
+          --override compression.type={{.Values.CompressionType}} \
+          --override delete.topic.enable={{.Values.DeleteTopicEnable}} \
+          --override leader.imbalance.check.interval.seconds={{.Values.LeaderImbalanceCheckIntervalSeconds}} \
+          --override leader.imbalance.per.broker.percentage={{.Values.LeaderImbalancePerBrokerPercentage}} \
+          --override log.flush.interval.messages={{.Values.LogFlushIntervalMessages}} \
+          --override log.flush.offset.checkpoint.interval.ms={{.Values.LogFlushOffsetCheckpointIntervalMs}} \
+          --override log.flush.scheduler.interval.ms={{.Values.LogFlushSchedulerIntervalMs}} \
+          --override log.retention.bytes={{.Values.LogRetentionBytes}} \
+          --override log.retention.hours={{.Values.LogRetentionHours}} \
+          --override log.roll.hours={{.Values.LogRollHours}} \
+          --override log.roll.jitter.hours={{.Values.LogRollJitterHours}} \
+          --override log.segment.bytes={{.Values.LogSegmentBytes}} \
+          --override log.segment.delete.delay.ms={{.Values.LogSegmentDeleteDelayMs}} \
+          --override message.max.bytes={{.Values.MessageMaxBytes}} \
+          --override min.insync.replicas={{.Values.MinInsyncReplicas}} \
+          --override num.io.threads={{.Values.NumIoThreads}} \
+          --override num.network.threads={{.Values.NumNetworkThreads}} \
+          --override num.recovery.threads.per.data.dir={{.Values.NumRecoveryThreadsPerDataDir}} \
+          --override num.replica.fetchers={{.Values.NumReplicaFetchers}} \
+          --override offset.metadata.max.bytes={{.Values.OffsetMetadataMaxBytes}} \
+          --override offsets.commit.required.acks={{.Values.OffsetsCommitRequiredAcks}} \
+          --override offsets.commit.timeout.ms={{.Values.OffsetsCommitTimeoutMs}} \
+          --override offsets.load.buffer.size={{.Values.OffsetsLoadBufferSize}} \
+          --override offsets.retention.check.interval.ms={{.Values.OffsetsRetentionCheckIntervalMs}} \
+          --override offsets.retention.minutes={{.Values.OffsetsRetentionMinutes}} \
+          --override offsets.topic.compression.codec={{.Values.OffsetsTopicCompressionCodec}} \
+          --override offsets.topic.num.partitions={{.Values.OffsetsTopicNumPartitions}} \
+          --override offsets.topic.replication.factor={{.Values.OffsetsTopicReplicationFactor}} \
+          --override offsets.topic.segment.bytes={{.Values.OffsetsTopicSegmentBytes}} \
+          --override queued.max.requests={{.Values.QueuedMaxRequests}} \
+          --override quota.consumer.default={{.Values.QuotaConsumerDefault}} \
+          --override quota.producer.default={{.Values.QuotaProducerDefault}} \
+          --override replica.fetch.min.bytes={{.Values.ReplicaFetchMinBytes}} \
+          --override replica.fetch.wait.max.ms={{.Values.ReplicaFetchWaitMaxMs}} \
+          --override replica.high.watermark.checkpoint.interval.ms={{.Values.ReplicaHighWatermarkCheckpointIntervalMs}} \
+          --override replica.lag.time.max.ms={{.Values.ReplicaLagTimeMaxMs}} \
+          --override replica.socket.receive.buffer.bytes={{.Values.ReplicaSocketReceiveBufferBytes}} \
+          --override replica.socket.timeout.ms={{.Values.ReplicaSocketTimeoutMs}} \
+          --override request.timeout.ms={{.Values.RequestTimeoutMs}} \
+          --override socket.receive.buffer.bytes={{.Values.SocketReceiveBufferBytes}} \
+          --override socket.request.max.bytes={{.Values.SocketRequestMaxBytes}} \
+          --override socket.send.buffer.bytes={{.Values.SocketSendBufferBytes}} \
+          --override unclean.leader.election.enable={{.Values.UncleanLeaderElectionEnable}} \
+          --override zookeeper.session.timeout.ms={{.Values.ZookeeperSessionTimeoutMs}} \
+          --override zookeeper.set.acl={{.Values.ZookeeperSetAcl}} \
+          --override broker.id.generation.enable={{.Values.BrokerIdGenerationEnable}} \
+          --override connections.max.idle.ms={{.Values.ConnectionsMaxIdleMs}} \
+          --override controlled.shutdown.enable={{.Values.ControlledShutdownEnable}} \
+          --override controlled.shutdown.max.retries={{.Values.ControlledShutdownMaxRetries}} \
+          --override controlled.shutdown.retry.backoff.ms={{.Values.ControlledShutdownRetryBackoffMs}} \
+          --override controller.socket.timeout.ms={{.Values.ControllerSocketTimeoutMs}} \
+          --override default.replication.factor={{.Values.DefaultReplicationFactor}} \
+          --override fetch.purgatory.purge.interval.requests={{.Values.FetchPurgatoryPurgeIntervalRequests}} \
+          --override group.max.session.timeout.ms={{.Values.GroupMaxSessionTimeoutMs}} \
+          --override group.min.session.timeout.ms={{.Values.GroupMinSessionTimeoutMs}} \
+          --override inter.broker.protocol.version={{.Values.InterBrokerProtocolVersion}} \
+          --override log.cleaner.backoff.ms={{.Values.LogCleanerBackoffMs}} \
+          --override log.cleaner.dedupe.buffer.size={{.Values.LogCleanerDedupeBufferSize}} \
+          --override log.cleaner.delete.retention.ms={{.Values.LogCleanerDeleteRetentionMs}} \
+          --override log.cleaner.enable={{.Values.LogCleanerEnable}} \
+          --override log.cleaner.io.buffer.load.factor={{.Values.LogCleanerIoBufferLoadFactor}} \
+          --override log.cleaner.io.buffer.size={{.Values.LogCleanerIoBufferSize}} \
+          --override log.cleaner.io.max.bytes.per.second={{.Values.LogCleanerIoMaxBytesPerSecond}} \
+          --override log.cleaner.min.cleanable.ratio={{.Values.LogCleanerMinCleanableRatio}} \
+          --override log.cleaner.min.compaction.lag.ms={{.Values.LogCleanerMinCompactionLagMs}} \
+          --override log.cleaner.threads={{.Values.LogCleanerThreads}} \
+          --override log.cleanup.policy={{.Values.LogCleanupPolicy}} \
+          --override log.index.interval.bytes={{.Values.LogIndexIntervalBytes}} \
+          --override log.index.size.max.bytes={{.Values.LogIndexSizeMaxBytes}} \
+          --override log.message.timestamp.difference.max.ms={{.Values.LogMessageTimestampDifferenceMaxMs}} \
+          --override log.message.timestamp.type={{.Values.LogMessageTimestampType}} \
+          --override log.preallocate={{.Values.LogPreallocate}} \
+          --override log.retention.check.interval.ms={{.Values.LogRetentionCheckIntervalMs}} \
+          --override max.connections.per.ip={{.Values.MaxConnectionsPerIp}} \
+          --override num.partitions={{.Values.NumPartitions}} \
+          --override producer.purgatory.purge.interval.requests={{.Values.ProducerPurgatoryPurgeIntervalRequests}} \
+          --override replica.fetch.backoff.ms={{.Values.ReplicaFetchBackoffMs}} \
+          --override replica.fetch.max.bytes={{.Values.ReplicaFetchMaxBytes}} \
+          --override replica.fetch.response.max.bytes={{.Values.ReplicaFetchResponseMaxBytes}} \
+          --override reserved.broker.max.id={{.Values.ReservedBrokerMaxId}}"
+        env:
+        - name: KAFKA_HEAP_OPTS
+          value : "-Xmx{{.Values.Heap}} -Xms{{.Values.Heap}}"
+        - name: KAFKA_OPTS
+          value: "-Dlogging.level={{.Values.LogLevel}}"
+        volumeMounts:
+        - name: datadir
+          mountPath: /var/lib/kafka
+        readinessProbe:
+          exec:
+           command:
+            - sh
+            - -c
+            - "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server=localhost:{{.Values.ServerPort}}"
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{.Values.Storage}}

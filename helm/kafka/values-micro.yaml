@@ -1,0 +1,123 @@
+Name: "kf"
+Brokers: 1
+Cpu: "0.5m"
+Memory: "1Gi"
+Storage: "10Gi"
+AntiAffinity : "hard"
+ContainerPort: 9093
+LogLevel: INFO
+Heap: 512G
+ServerPort: 9093
+MaxUnavailable: 1
+UpateStrategy: RollingUpdate
+Image: "gcr.io/google_containers/kubernetes-kafka:1.0-10.2.1"
+ImagePullPolicy: "Always"
+TerminationGracePeriodSeconds: 300
+AutoCreateTopicsEnable: "true"
+AutoLeaderRebalanceEnable: "true"
+BackgroundThreads: "10"
+CompressionType: "producer"
+DeleteTopicEnable: "false"
+LeaderImbalanceCheckIntervalSeconds: "300"
+LeaderImbalancePerBrokerPercentage: "10"
+LogFlushIntervalMessages: "9223372036854775807"
+LogFlushOffsetCheckpointIntervalMs: "60000"
+LogFlushSchedulerIntervalMs: "9223372036854775807"
+LogRetentionBytes: "-1"
+LogRetentionHours: "168"
+LogRollHours: "168"
+LogRollJitterHours: "0"
+LogSegmentBytes: "1073741824"
+LogSegmentDeleteDelayMs: "60000"
+MessageMaxBytes: "1000012"
+MinInsyncReplicas: "1"
+NumIoThreads: "8"
+NumNetworkThreads: "3"
+NumRecoveryThreadsPerDataDir: "1"
+NumReplicaFetchers: "1"
+OffsetMetadataMaxBytes: "4096"
+OffsetsCommitRequiredAcks: "-1"
+OffsetsCommitTimeoutMs: "5000"
+OffsetsLoadBufferSize: "5242880"
+OffsetsRetentionCheckIntervalMs: "600000"
+OffsetsRetentionMinutes: "1440"
+OffsetsTopicCompressionCodec: "0"
+OffsetsTopicNumPartitions: "50"
+OffsetsTopicReplicationFactor: "3"
+OffsetsTopicSegmentBytes: "104857600"
+QueuedMaxRequests: "500"
+QuotaConsumerDefault: "9223372036854775807"
+QuotaProducerDefault: "9223372036854775807"
+ReplicaFetchMinBytes: "1"
+ReplicaFetchWaitMaxMs: "500"
+ReplicaHighWatermarkCheckpointIntervalMs: "5000"
+ReplicaLagTimeMaxMs: "10000"
+ReplicaSocketReceiveBufferBytes: "65536"
+ReplicaSocketTimeoutMs: "30000"
+RequestTimeoutMs: "30000"
+SocketReceiveBufferBytes: "102400"
+SocketRequestMaxBytes: "104857600"
+SocketSendBufferBytes: "102400"
+UncleanLeaderElectionEnable: "true"
+ZookeeperSessionTimeoutMs: "6000"
+ZookeeperSetAcl: "false"
+BrokerIdGenerationEnable: "true"
+ConnectionsMaxIdleMs: "600000"
+ControlledShutdownEnable: "true"
+ControlledShutdownMaxRetries: "3"
+ControlledShutdownRetryBackoffMs: "5000"
+ControllerSocketTimeoutMs: "30000"
+DefaultReplicationFactor: "1"
+FetchPurgatoryPurgeIntervalRequests: "1000"
+GroupMaxSessionTimeoutMs: "300000"
+GroupMinSessionTimeoutMs: "6000"
+InterBrokerProtocolVersion: "0.10.2-IV0"
+LogCleanerBackoffMs: "15000"
+LogCleanerDedupeBufferSize: "134217728"
+LogCleanerDeleteRetentionMs: "86400000"
+LogCleanerEnable: "true"
+LogCleanerIoBufferLoadFactor: "0.9"
+LogCleanerIoBufferSize: "524288"
+LogCleanerIoMaxBytesPerSecond: "1.7976931348623157E308"
+LogCleanerMinCleanableRatio: "0.5"
+LogCleanerMinCompactionLagMs: "0"
+LogCleanerThreads: "1"
+LogCleanupPolicy: "delete"
+LogIndexIntervalBytes: "4096"
+LogIndexSizeMaxBytes: "10485760"
+LogMessageTimestampDifferenceMaxMs: "9223372036854775807"
+LogMessageTimestampType: "CreateTime"
+LogPreallocate: "false"
+LogRetentionCheckIntervalMs: "300000"
+MaxConnectionsPerIp: "2147483647"
+NumPartitions: "1"
+ProducerPurgatoryPurgeIntervalRequests: "1000"
+ReplicaFetchBackoffMs: "1000"
+ReplicaFetchMaxBytes: "1048576"
+ReplicaFetchResponseMaxBytes: "10485760"
+ReservedBrokerMaxId: "1000"
+zookeeper:
+  Servers: 1
+  Cpu: "0.5"
+  Memory: "1Gi"
+  Heap: "512M"
+  Storage: "10Gi"
+  ServerPort: 2888
+  LeaderElectionPort: 3888
+  ClientPort: 2181
+  Image: "gcr.io/google_containers/kubernetes-zookeeper:1.0-3.4.10"
+  ImagePullPolicy: "Always"
+  TickTimeMs: 2000
+  InitTicks: 10
+  SyncTicks: 5
+  ClientCnxns: 60
+  SnapRetain: 3
+  PurgeHours: 1
+  ProbeInitialDelaySeconds : 15
+  ProbeTimeoutSeconds : 5
+  AntiAffinity: "soft"
+  LogLevel: "INFO"
+  MaxSessionTimeout: 40000
+  MinSessionTimeout: 4000
+  UpdateStrategy: RollingUpdate
+  MaxUnavailable: 1
