@@ -67,7 +67,7 @@ spec:
         resources:
           requests:
             memory: "1Gi"
-            cpu: 500m
+            cpu: "0.5"
         ports:
         - containerPort: 9093
           name: server
