@@ -11,11 +11,11 @@ It requires Kubernetes 1.7 or greater.netes.
 noisy neighbors on separate Nodes.
 
 ## Kafka Docker Image 
-The [docker](/docker) directory contains the [Makefile](/docker/Makefile) for a [Docker image](/docker/Dockerfile) that 
+The [docker](docker) directory contains the [Makefile](docker/Makefile) for a [Docker image](docker/Dockerfile) that 
 runs a Kafka broker.
 
 ## Manifests
-The [manifests](/manifests) directory contains server Kubernetes [manifests](/manifests/README.md) that can be used for 
+The [manifests](manifests) directory contains server Kubernetes [manifests](manifests/README.md) that can be used for 
 demonstration purposes or production deployments. If you primarily deploy manifests directly you can modify any of 
 these to fit your use case.
 
