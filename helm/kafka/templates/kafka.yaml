@@ -45,7 +45,7 @@ metadata:
    component: "{{.Release.Name}}"
 spec:
   serviceName: "{{ printf "kf-hs-%s" .Release.Name | trunc 24 }}"
-  replicas: 3
+  replicas: {{.Values.Brokers}}
   podManagementPolicy: Parallel
   updateStrategy:
     type: {{.Values.UpdateStrategy}}
