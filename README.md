@@ -1,4 +1,4 @@
-# Kuberentes Kafka
+# Kubernetes Kafka
 This project contains tools to facilitate the deployment of 
 [Apache Kafka](https://kafka.apache.org/) on 
 [Kubernetes](http://kubernetes.io/) using 
@@ -123,7 +123,7 @@ StatefulSet's Pods' container's command. The default will retain logs for 168 ho
 log size. You should adjust this based on the desired retention and expected load for your cluster.
 
 ### Kafka Application Logging
-Kafka's application logs are written to standard out so they can be captured by the default Kuberentes logging 
+Kafka's application logs are written to standard out so they can be captured by the default Kubernetes logging 
 infrastructure (as is considered to be the best practice for containerized applications). The logging level can be 
 controlled by the `KAFKA_OPTS` environment variable. Setting its value to  "-Dlogging.level=<level>", where level is 
 one of `INFO`, `DEBUG`, `WARNING`, `ERROR`, or `FATAL` controls the logging threshold
